@@ -51,12 +51,14 @@ pipeline {
         }
         
         stage('Quality Gate') {
-            steps {
-                script {
-                    waitForQualityGate abortPipeline: false, credentialsId: 'sonar-token'
-                }
-            }
+    steps {
+        script {
+            waitForQualityGate abortPipeline: false, 
+                               credentialsId: 'sonar-token', 
+                               timeout: '5m'
         }
+    }
+}
         
         stage('Build') {
             steps {
