@@ -72,7 +72,6 @@ pipeline {
         
         stage('Build & Tag Docker Image') {
             steps {
-               script {
 
                 script { 
                     withDockerRegistry(credentialsId: 'jenkins-docker-cred', toolName: 'docker') {
@@ -82,7 +81,7 @@ pipeline {
                    
                }
             }
-        }
+        
         
         stage('Docker Image Scan') {
             steps {
@@ -154,4 +153,7 @@ pipeline {
     }
 }
 
+    }
 }
+}
+
