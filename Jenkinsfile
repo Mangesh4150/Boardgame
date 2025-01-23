@@ -8,13 +8,15 @@ pipeline {
     }
 
     enviornment {
-        SCANNER_HOME= tool 'sonar-scanner'
+        SCANNER_HOME= tool 'sonar'
+        MINIKUBE_CLUSTER_NAME = 'minikube'
+        DEPLOYMENT_YML = '/home/zignuts/boardgame/deployment-service.yml'
     }
 
     stages {
         stage('Git Checkout') {
             steps {
-               git branch: 'main', credentialsId: 'git-cred', url: 'https://github.com/jaiswaladi246/Boardgame.git'
+               git branch: 'main', credentialsId: 'git-credentials', url: 'https://github.com/Mangesh4150/Boardgame.git'
             }
         }
         
@@ -61,55 +63,61 @@ pipeline {
         
         stage('Publish To Nexus') {
             steps {
-               withMaven(globalMavenSettingsConfig: 'global-settings', jdk: 'jdk17', maven: 'maven3', mavenSettingsConfig: '', traceability: true) {
-                    sh "mvn deploy"
-                }
+                withMaven(globalMavenSettingsConfig: 'global-setting', jdk: 'jdk17', maven: 'maven3', mavenSettingsConfig: '', traceability: true) {
+                sh "mvn deploy"
+        }
+               
             }
         }
         
         stage('Build & Tag Docker Image') {
             steps {
                script {
-                   withDockerRegistry(credentialsId: 'docker-cred', toolName: 'docker') {
-                            sh "docker build -t adijaiswal/boardshack:latest ."
-                    }
+
+                script { 
+                    withDockerRegistry(credentialsId: 'jenkins-docker-cred', toolName: 'docker') {
+                        sh "docker build -t mangesh4150/boardshack:latest ."
+}
+                }
+                   
                }
             }
         }
         
         stage('Docker Image Scan') {
             steps {
-                sh "trivy image --format table -o trivy-image-report.html adijaiswal/boardshack:latest "
+                sh "trivy image --format table -o trivy-image-report.html mangesh4150/boardshack:latest "
             }
         }
         
         stage('Push Docker Image') {
             steps {
                script {
-                   withDockerRegistry(credentialsId: 'docker-cred', toolName: 'docker') {
-                            sh "docker push adijaiswal/boardshack:latest"
+                   withDockerRegistry(credentialsId: 'jenkins-docker-cred', toolName: 'docker') {
+                        sh "docker push mangesh4150/boardshack:latest"
                     }
                }
             }
         }
-        stage('Deploy To Kubernetes') {
+        stage('Deploy to Minikube') {
             steps {
-               withKubeConfig(caCertificate: '', clusterName: 'kubernetes', contextName: '', credentialsId: 'k8-cred', namespace: 'webapps', restrictKubeConfigAccess: false, serverUrl: 'https://172.31.8.146:6443') {
-                        sh "kubectl apply -f deployment-service.yaml"
+                script {
+                    // Apply the updated deployment and service YAML files to Minikube
+                    sh 'kubectl apply -f ${DEPLOYMENT_YML} --validate=false'
+                    sh 'kubectl apply -f service.yml --validate=false'
                 }
             }
         }
         
         stage('Verify the Deployment') {
             steps {
-               withKubeConfig(caCertificate: '', clusterName: 'kubernetes', contextName: '', credentialsId: 'k8-cred', namespace: 'webapps', restrictKubeConfigAccess: false, serverUrl: 'https://172.31.8.146:6443') {
-                        sh "kubectl get pods -n webapps"
+                script {
+                    // Apply the updated deployment and service YAML files to Minikube
+                    sh "kubectl get pods -n webapps"
                         sh "kubectl get svc -n webapps"
                 }
             }
-        }
-        
-        
+            
     }
     post {
     always {
@@ -136,7 +144,7 @@ pipeline {
             emailext (
                 subject: "${jobName} - Build ${buildNumber} - ${pipelineStatus.toUpperCase()}",
                 body: body,
-                to: 'jaiswaladi246@gmail.com',
+                to: 'v.mangesh1718@gmail.com',
                 from: 'jenkins@example.com',
                 replyTo: 'jenkins@example.com',
                 mimeType: 'text/html',
