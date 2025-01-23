@@ -69,7 +69,7 @@ pipeline {
             steps {
                 script {
                     withDockerRegistry(credentialsId: 'jenkins-docker-cred', toolName: 'docker') {
-                        sh "docker build -t mangesh4150/boardshack:latest ."
+                        sh "docker build -t mangesh4150/boardshack:1.0 ."
                     }
                 }
             }
@@ -77,7 +77,7 @@ pipeline {
         
         stage('Docker Image Scan') {
             steps {
-                sh "trivy image --format table -o trivy-image-report.html mangesh4150/boardshack:latest"
+                sh "trivy image --format table -o trivy-image-report.html mangesh4150/boardshack:1.0"
             }
         }
         
@@ -85,7 +85,7 @@ pipeline {
             steps {
                 script {
                     withDockerRegistry(credentialsId: 'jenkins-docker-cred', toolName: 'docker') {
-                        sh "docker push mangesh4150/boardshack:latest"
+                        sh "docker push mangesh4150/boardshack:1.0"
                     }
                 }
             }
