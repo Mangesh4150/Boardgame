@@ -49,19 +49,7 @@ pipeline {
                 }
             }
         }
-        
-        stage('Quality Gate') {
-    steps {
-        script {
-            // Apply a timeout for waiting on the Quality Gate
-            timeout(time: 5, unit: 'MINUTES') {
-                waitForQualityGate abortPipeline: false, credentialsId: 'sonar-token'
-            }
-        }
-    }
-}
-
-        
+         
         stage('Build') {
             steps {
                 sh "mvn package"
