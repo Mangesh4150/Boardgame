@@ -9,7 +9,7 @@ pipeline {
     environment {
         SCANNER_HOME = tool 'sonar'
         MINIKUBE_CLUSTER_NAME = 'minikube'
-        DEPLOYMENT_YML = '/home/zignuts/boardgame/deployment-service.yml'
+        DEPLOYMENT_YML = '/home/zignuts/boardgame/deployment-service.yaml'
     }
 
     stages {
@@ -95,7 +95,6 @@ pipeline {
             steps {
                 script {
                     sh "kubectl apply -f ${DEPLOYMENT_YML} --validate=false"
-                    sh "kubectl apply -f service.yml --validate=false"
                 }
             }
         }
